@@ -13,3 +13,21 @@ global:
   enforcementCni: "calico"
   imagePullSecrets:
     - name: guardicore-registry-auth
+
+gc-kube-enforce:
+  tolerations:
+    - effect: NoSchedule
+      key: node-role.kubernetes.io/control-plane
+      operator: Exists
+
+gc-kube-inventory:
+  tolerations:
+    - effect: NoSchedule
+      key: node-role.kubernetes.io/control-plane
+      operator: Exists
+
+gc-guest-agent:
+  tolerations:
+    - effect: NoSchedule
+      key: node-role.kubernetes.io/control-plane
+      operator: Exists
