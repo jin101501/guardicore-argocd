@@ -1,0 +1,6 @@
+apiVersion: v2
+appVersion: v5.51.25292.48107
+description: Guardicore kubernetes inventory
+name: gc-kube-inventory
+type: application
+version: 0.1.2

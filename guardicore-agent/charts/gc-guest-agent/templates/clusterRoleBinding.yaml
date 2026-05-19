@@ -1,0 +1,12 @@
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: gc-agent-clusterrole-binding
+subjects:
+- kind: ServiceAccount
+  name: {{ .Values.gcServiceAccount | default .Values.global.gcServiceAccount}}
+  namespace: {{ .Values.gcNamespace | default .Values.global.gcNamespace}}
+roleRef:
+  kind: ClusterRole
+  name: gc-agent-clusterrole
+  apiGroup: rbac.authorization.k8s.io

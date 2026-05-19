@@ -1,0 +1,104 @@
+{{- if not .Values.publicRegistry }}
+{{- fail "publicRegistry must be set" }}
+{{- end }}
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: gc-deploy-sa
+  namespace: {{ .Values.global.gcNamespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  annotations:
+    rbac.authorization.kubernetes.io/autoupdate: "true"
+  name: gc-deploy-role
+rules:
+- apiGroups: ["extensions", "apps"]
+  resources: ["deployments", "daemonsets", "replicasets", "statefulsets"]
+  verbs: ["get", "list", "patch", "watch", "create", "delete"]
+- apiGroups: ["security.openshift.io"]
+  resources: ["securitycontextconstraints"]
+  resourceNames: ["privileged"]
+  verbs: ["use"]
+- apiGroups: ["projectcalico.org"]
+  resources: ["networkpolicies", "globalnetworkpolicies"]
+  verbs: ["get", "list", "delete"]
+- apiGroups: [""]
+  resources: ["namespaces"]
+  verbs: ["get", "update", "list", "watch"]
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["get", "list", "watch", "create", "update"]
+- apiGroups: ["networking.k8s.io"]
+  resources: ["networkpolicies"]
+  verbs: ["get", "list", "delete"]
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: gc-deploy-role-binding
+subjects:
+- kind: ServiceAccount
+  name: gc-deploy-sa
+  namespace: {{ .Values.global.gcNamespace }}
+roleRef:
+  kind: ClusterRole
+  name: gc-deploy-role
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: gc-pre-delete
+  namespace: {{ .Values.global.gcNamespace }}
+  labels:
+    app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
+    app.kubernetes.io/instance: {{ .Release.Name | quote }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    helm.sh/chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    app: guardicore-deployment
+  annotations:
+    "helm.sh/hook": pre-delete
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: 3
+  template:
+    spec:
+      serviceAccountName: gc-deploy-sa
+      containers:
+      - name: gc-uninstall
+        image: "{{ .Values.publicRegistry }}/gc-deployment:{{ .Values.appVersion | default .Chart.AppVersion }}"
+        command: ["/var/lib/guardicore/gc-deployment"]
+        imagePullPolicy: Always
+        env:
+        - name: GC_NAMESPACE
+          value: "{{ .Values.global.gcNamespace }}"
+        - name: DEBUG
+          valueFrom:
+            configMapKeyRef:
+              name: guardicore-config
+              key: debug
+        - name: GC_NOTIFICATION_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: guardicore-config
+              key: notificationPort
+        - name: RUN_MODE
+          value: "uninstall"
+        - name: GC_ENFORCEMENT_CNI
+          valueFrom:
+            configMapKeyRef:
+              name: guardicore-config
+              key: enforcementCni        
+        resources:
+          limits:
+            cpu: 200m
+            memory: 200Mi
+          requests:
+            cpu: 100m
+            memory: 100Mi
+      restartPolicy: Never
+

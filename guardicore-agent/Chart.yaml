@@ -1,0 +1,13 @@
+apiVersion: v2
+appVersion: v5.51.25292.48107
+dependencies:
+- name: gc-k8s-orch
+  repository: file://charts/gc-k8s-orch
+- name: gc-guest-agent
+  repository: file://charts/gc-guest-agent
+- name: gc-kube-enforce
+  repository: file://charts/gc-kube-enforce
+description: A Helm chart for Guardicore Kubernetes integration
+name: gc-kubernetes
+type: application
+version: 0.1.2

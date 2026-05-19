@@ -1,0 +1,17 @@
+{{- if eq (include "isEnforcementCniSupported" .) "true" -}}
+
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: gc-enforce-role-binding
+  namespace: {{ .Values.gcNamespace | default .Values.global.gcNamespace}}
+subjects:
+- kind: ServiceAccount
+  name: {{ .Values.gcServiceAccount | default .Values.global.gcServiceAccount}}
+  namespace: {{ .Values.gcNamespace | default .Values.global.gcNamespace}}
+roleRef:
+  kind: Role
+  name: gc-enforce-role
+  apiGroup: rbac.authorization.k8s.io
+
+{{- end }}

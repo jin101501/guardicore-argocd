@@ -1,0 +1,33 @@
+# This is a basic values.yaml file without advanced customization.
+# You should apply the values from CENTRA installation instructions as explained within the comments in this file.
+notificationPort: 55551
+gcProfile: default
+
+# Enable verbose logging: true = verbose mode, false = normal mode
+debug: false
+
+# Specify the SSL port (provided in the installation instructions  "SSL_PORT")
+sslPort: 443
+
+# Specify the Aggregator SSL server address (provided in the installation instructions "SSL_SERVER")
+sslServer: null
+
+# Specify the UI password (provided in the installation instructions "UI_UM_PASSWORD")
+uiUmPassword: null
+
+# The JOb uninstall will pull image from this repository  (provided in the installation instructions "DOCKER_PUBLIC_REGISTRTY") 
+publicRegistry: null
+
+logVerdict: true
+
+global:
+  gcNamespace: guardicore
+  gcServiceAccount: guardicore-sa
+  
+  # Leave empty for reveal mode. For enforcement mode, specify the CNI type:
+  # Supported values: calico, ovn, azure
+  enforcementCni: ""
+  
+  
+  # The GC services pull image from this repository  (provided in the installation instructions "DOCKER_PRIVATE_REGISTRTY")
+  privateRegistry: ""

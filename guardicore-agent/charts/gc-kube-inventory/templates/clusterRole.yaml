@@ -1,0 +1,24 @@
+{{ if .Values.global.includeInventory }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  annotations:
+    rbac.authorization.kubernetes.io/autoupdate: "true"
+  name: gc-role-inventory
+rules:
+- apiGroups: [""]
+  resources: ["namespaces"]
+  verbs: ["get", "update", "list", "watch"]
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["get", "list", "watch", "create", "update"]
+- apiGroups: [""]
+  resources: ["pods", "nodes", "endpoints", "services", "replicationcontrollers", "pods/log", "events"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["config.openshift.io"]
+  resources: ["clusterversions"]
+  verbs: ["get"]
+- apiGroups: ["projectcalico.org"]
+  resources: ["clusterinformations"]
+  verbs: ["get", "list", "watch"]
+{{ end }}

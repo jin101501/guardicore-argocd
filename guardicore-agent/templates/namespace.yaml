@@ -1,0 +1,11 @@
+{{- include "validatePrerequisites" . }}
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Values.global.gcNamespace }}
+  labels:
+    pod-security.kubernetes.io/warn: privileged
+    pod-security.kubernetes.io/enforce: privileged
+  annotations:
+    openshift.io/node-selector: ""

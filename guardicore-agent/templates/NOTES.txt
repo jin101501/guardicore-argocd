@@ -1,0 +1,44 @@
+
+1. K8s Orchestration:
+   To set up Kubernetes orchestration, execute the following commands to retrieve the necessary values:
+
+   * K8s Host and Port: 
+   kubectl config view --minify --output jsonpath='{.clusters[0].cluster.server}'
+
+   * Service Account Token:
+   kubectl get secret --namespace guardicore-orch -o jsonpath="{.items[?(@.metadata.annotations['kubernetes\.io/service-account\.name']=='gc-reader')].data.token}" | base64 --decode
+
+2. GC Guest Agent has been successfully deployed.
+
+   You can verify the deployment by running:
+
+   kubectl get daemonset -n {{ .Values.global.gcNamespace }} gc-agents-daemonset
+
+{{ if .Values.global.enforcementCni -}}
+3. Kube Enforcement has been successfully deployed.
+
+   You can verify the deployment by running:
+
+   kubectl get deployment -n {{ .Values.global.gcNamespace }} gc-kube-enforce
+{{- end }}
+
+4. Namespace and Service Account:
+   - Namespace: {{ .Values.global.gcNamespace }}
+   - Service Account: {{ .Values.global.gcServiceAccount }}
+
+5. Configuration:
+   - SSL Server: {{ .Values.sslServer }}
+   - SSL Addresses: {{ .Values.sslAddresses }}
+   - SSL Port: {{ .Values.sslPort }}
+   - Enforcement CNI: {{ .Values.global.enforcementCni }}
+   - Log Verdict: {{ .Values.logVerdict }}
+   - Debug Mode: {{ .Values.debug }}
+
+6. Uninstallation:
+   To uninstall the chart, run:
+
+   helm uninstall {{ .Release.Name }} --wait
+
+   This will remove all the Kubernetes components associated with the chart and delete the release.
+
+Thank you for using the gc-kubernetes chart

@@ -1,0 +1,94 @@
+{{ if .Values.global.includeInventory }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gc-kube-inventory
+  namespace:  {{ .Values.gcNamespace | default .Values.global.gcNamespace}}
+  labels:
+    app: guardicore-inventory
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: guardicore-inventory
+  template:
+    metadata:
+      namespace: {{ .Values.gcNamespace | default .Values.global.gcNamespace}}
+      labels:
+        app: guardicore-inventory
+      annotations:
+        {{- with .Values.global.annotations  }}
+        {{- toYaml . | nindent 8 }}
+        {{- end}}
+        {{- with .Values.annotations  }}
+        {{- toYaml . | nindent 8 }}
+        {{- end}}
+    spec:
+      {{- with .Values.tolerations  }}
+      tolerations:
+      {{- toYaml . | nindent 6 }}
+      {{- end}}
+      {{- with .Values.nodeSelector  }}
+      nodeSelector: 
+      {{- toYaml . | nindent 8 }}
+      {{- end}}
+      imagePullSecrets:
+      {{- if .Values.registryAuthFile | default .Values.global.registryAuthFile }}
+        - name: guardicore-registry-secret
+      {{- end -}}      
+      {{- with .Values.global.imagePullSecrets }}
+      {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ .Values.gcServiceAccount | default .Values.global.gcServiceAccount }}
+      containers:
+      - name: guardicore-inventory
+        image: {{ include "privateRegistry" . }}gc-inventory:{{ .Values.appVersion | default .Chart.AppVersion }}
+        command: ["/var/lib/guardicore/entrypoint.sh"]
+        imagePullPolicy: IfNotPresent
+        env:
+          - name: DEBUG
+            valueFrom:
+              configMapKeyRef:
+                name: guardicore-config
+                key: debug
+          - name: UI_UM_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: guardicore-agent-secret
+                key: installation_password
+          - name: SSL_SERVER
+            valueFrom:
+              configMapKeyRef:
+                name: guardicore-config
+                key: sslServer
+          - name: SSL_ADDRESSES
+            valueFrom:
+              configMapKeyRef:
+                name: guardicore-config
+                key: sslAddresses
+          - name: SSL_PORT
+            valueFrom:
+              configMapKeyRef:
+                name: guardicore-config
+                key: sslPort
+        volumeMounts:
+          - name: gc-logs
+            mountPath: /var/log/guardicore
+          - name: gc-cert
+            mountPath: "/tmp/cert"
+            readOnly: true
+        resources:
+          limits:
+            cpu: 400m
+            memory: 400Mi
+          requests:
+            cpu: 100m
+            memory: 100Mi
+      volumes:
+        - name: gc-logs
+          hostPath:
+            path: "/var/log/guardicore"
+        - name: gc-cert
+          secret:
+            secretName: guardicore-cas-chain-secret
+{{ end }}

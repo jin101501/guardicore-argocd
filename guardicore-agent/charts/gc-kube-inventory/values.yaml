@@ -1,0 +1,12 @@
+gcNamespace: ""
+gcServiceAccount: ""
+
+appVersion: ""
+
+privateRegistry: ""
+
+registryAuthFile: ""
+
+annotations: {}
+
+tolerations: []

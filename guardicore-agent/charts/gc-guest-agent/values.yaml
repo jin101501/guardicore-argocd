@@ -1,0 +1,16 @@
+gcNamespace: ""
+gcServiceAccount: ""
+
+daemonArgs: ""
+
+appVersion: ""
+
+containerRuntimePath: ""
+
+privateRegistry: ""
+
+registryAuthFile: ""
+
+annotations: {}
+
+tolerations: []

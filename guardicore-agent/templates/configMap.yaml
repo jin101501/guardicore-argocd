@@ -1,0 +1,19 @@
+{{- include "validatePrerequisites" . }}
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: guardicore-config
+  namespace: {{ .Values.global.gcNamespace }}
+data:
+  notificationPort: "{{ .Values.notificationPort }}"
+  sslServer: "{{ .Values.sslServer }}"
+  sslAddresses: "{{ .Values.sslAddresses }}"
+  sslPort: "{{ .Values.sslPort }}"
+  gcProfile: "{{ .Values.gcProfile }}"
+  logVerdict: "{{ .Values.logVerdict }}"
+  debug: "{{ .Values.debug }}"
+  enforcementCni: "{{ .Values.global.enforcementCni}}"
+  retentionThreshold: "{{ .Values.retentionThreshold}}"
+

@@ -1,0 +1,113 @@
+{{- if eq (include "isEnforcementCniSupported" .) "true" -}}
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gc-kube-enforce
+  namespace:  {{ .Values.gcNamespace | default .Values.global.gcNamespace}}
+  labels:
+    app: guardicore-enforcement
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: guardicore-enforcement
+  template:
+    metadata:
+      namespace: {{ .Values.gcNamespace | default .Values.global.gcNamespace}}
+      labels:
+        app: guardicore-enforcement
+      annotations:
+        guardicore/enforcement: {{ .Values.global.enforcementCni }}
+        {{- with .Values.global.annotations  }}
+        {{- toYaml . | nindent 8 }}
+        {{- end}}
+        {{- with .Values.annotations  }}
+        {{- toYaml . | nindent 8 }}
+        {{- end}}
+    spec:
+      {{- with .Values.tolerations  }}
+      tolerations:
+      {{- toYaml . | nindent 6 }}
+      {{- end}}
+      {{- with .Values.nodeSelector  }}
+      nodeSelector: 
+      {{- toYaml . | nindent 8 }}
+      {{- end}}
+      imagePullSecrets:
+      {{- if .Values.registryAuthFile | default .Values.global.registryAuthFile }}
+        - name: guardicore-registry-secret
+      {{- end -}}      
+      {{- with .Values.global.imagePullSecrets }}
+      {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ .Values.gcServiceAccount | default .Values.global.gcServiceAccount }}
+      containers:
+      - name: guardicore-enforcement
+        image: {{ include "privateRegistry" . }}gc-enforcement:{{ .Values.appVersion | default .Chart.AppVersion }}
+        command: ["/var/lib/guardicore/entrypoint.sh"]
+        imagePullPolicy: IfNotPresent
+        env:
+          - name: DEBUG
+            valueFrom:
+              configMapKeyRef:
+                name: guardicore-config
+                key: debug
+          - name: ENFORCEMENT_CNI
+            value: {{ .Values.global.enforcementCni }}
+          - name: LOG_VERDICT
+            valueFrom:
+              configMapKeyRef:
+                name: guardicore-config
+                key: logVerdict
+          - name: UI_UM_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: guardicore-ui-secret
+                key: installation_password
+          - name: SSL_SERVER
+            valueFrom:
+              configMapKeyRef:
+                name: guardicore-config
+                key: sslServer
+          - name: SSL_ADDRESSES
+            valueFrom:
+              configMapKeyRef:
+                name: guardicore-config
+                key: sslAddresses
+          - name: SSL_PORT
+            valueFrom:
+              configMapKeyRef:
+                name: guardicore-config
+                key: sslPort
+        volumeMounts:
+          - name: gc-logs
+            mountPath: /var/log/guardicore
+          - name: gc-cert
+            mountPath: "/tmp/cert"
+            readOnly: true
+        resources:
+          limits:
+            cpu: 400m
+            memory: 400Mi
+          requests:
+            cpu: 100m
+            memory: 100Mi
+        {{ if eq .Values.global.enforcementCni "ovn" }}
+        securityContext:
+          privileged: true
+        {{ end }}
+        # FIXME: Temporary addition, to allow testing azurecni on ovn clusters
+        {{ if eq .Values.global.enforcementCni "azurecni" }}
+        securityContext:
+          privileged: true
+        {{ end }}
+      volumes:
+        - name: gc-logs
+          hostPath:
+            path: "/var/log/guardicore"
+        - name: gc-cert
+          secret:
+            secretName: guardicore-cas-chain-secret
+
+{{- end }}

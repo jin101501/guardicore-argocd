@@ -1,0 +1,6 @@
+apiVersion: v2
+appVersion: 1.0.0
+description: A Helm Chart to Install Orchestration Objects
+name: gc-k8s-orch
+type: application
+version: 0.1.2
