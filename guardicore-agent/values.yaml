@@ -1,15 +1,15 @@
 uiUmPassword: "emGhx7SA"
+
 sslAddresses: "192.168.150.38:443"
+
 publicRegistry: "gcr.io/guardicore-26257070"
+
+caCertFile: files/guardicore_cas_chain_file.pem
 
 global:
   gcNamespace: "guardicore"
   gcServiceAccount: "guardicore-sa"
   privateRegistry: "gcr.io/guardicore-28070656"
   enforcementCni: "calico"
-
-imagePullSecrets:
-  - name: guardicore-registry-auth
-
-caCertFile: |
-  -----BEGIN CERTIFICATE-----
+  imagePullSecrets:
+    - name: guardicore-registry-auth
